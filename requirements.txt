@@ -1,0 +1,27 @@
+# -----------------------------------------------------------------------------
+# Python Package Requirements for ShortsBot
+# -----------------------------------------------------------------------------
+# Install all of these packages using the command:
+# pip install -r requirements.txt
+# -----------------------------------------------------------------------------
+
+# For reading the config.yaml file
+PyYAML
+
+# For interacting with the Discord API
+discord.py
+
+# For interacting with the YouTube Data API v3
+google-api-python-client
+
+# For handling the Google OAuth2 authentication flow
+google-auth-oauthlib
+
+# For handling HTTP sessions with Google's API
+google-auth-httplib2
+
+# For subtitle generation using OpenAI's Whisper model
+openai-whisper
+
+# For burning subtitles onto videos
+moviepy

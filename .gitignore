@@ -1,0 +1,30 @@
+# Python bytecode and cache
+__pycache__/
+*.pyc
+
+# IDE and OS-specific files
+.vscode/
+.idea/
+.DS_Store
+
+# CRITICAL: Secret Files - Do NOT upload these
+client_secrets.json
+token.json
+config.yaml
+schedule.yaml
+
+# CRITICAL: Bot-generated data and logs
+logs/
+progress.json
+*.log
+
+# Media and temporary files - These do not belong in source control
+input_videos/
+processed_clips/
+processed_videos/
+failed_uploads/
+quarantined_videos/
+fonts/
+*.srt
+*.ass
+filter_script.txt

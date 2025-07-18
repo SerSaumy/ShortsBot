@@ -1,0 +1,87 @@
+# -----------------------------------------------------------------------------
+# ShortsBot Configuration File
+# -----------------------------------------------------------------------------
+
+# YouTube API Settings
+youtube:
+  youtube_online_mode: true
+  client_secrets_file: "client_secrets.json"
+  scopes:
+    - "https://www.googleapis.com/auth/youtube.upload"
+    - "https://www.googleapis.com/auth/youtube"
+    - "https://www.googleapis.com/auth/youtube.force-ssl"
+  default_category_id: "24"
+  
+  # Your total daily quota limit (default is 10,000 for most projects)
+  daily_quota_limit: 10000
+  # The estimated cost of each API call we make
+  api_costs:
+    upload: 1600
+    update: 50
+    playlist_insert: 50
+    playlist_item_insert: 50
+    
+# Video Processing Settings
+video:
+  clip_duration_seconds: 60
+  clip_overlap_seconds: 2
+  output_format: "mp4"
+
+subtitles:
+  enabled: true
+  whisper_model: "base"
+  font_filename: "AsapCondensed-SemiBold"
+
+
+  imagemagick_path: "c:/Program Files/ImageMagick-7.1.2-Q16-HDRI/magick.exe"
+
+
+  style:
+    fontsize: 80
+    color: 'yellow'
+    stroke_color: 'black'
+    stroke_width: 3
+
+# Upload Scheduling Logic
+scheduler:
+  uploads_per_day: 3
+
+# Bot Behavior and Control
+bot:
+  max_uploads_per_day: 6 
+  discord_token: "YOUR_DISCORD_BOT_TOKEN_HERE"
+  channel_id: YOUR_DISCORD_CHANNEL_ID_HERE
+  owner_id: YOUR_DISCORD_USER_ID_HERE
+  prompt_timeout_minutes: 20
+  upload_retry_attempts: 3
+  retry_delay_minutes: 5
+
+# --- NEW & IMPROVED DESCRIPTION TEMPLATE ---
+# {title} - The main title of the video series.
+# {playlist_link} - A link to the full playlist.
+# {prev_video_link} - A link to the previous part.
+# {next_video_link} - A link to the next part.
+# {hashtags} - Your list of hashtags.
+description_template: |
+  🎬 {title}
+  
+  📺 Watch the full series in the playlist on our channel!
+  
+  --------------------
+  {hashtags}
+
+# Default Hashtags
+default_hashtags:
+  - "#shorts"
+  - "#youtubeshorts"
+  - "#viral"
+  - "#trending"
+  - "#fyp"
+  - "#movies"
+  - "#film"
+  - "#cinema"
+  - "#movieclips"
+  - "#movierecommendation"
+  - "#moviefacts"
+  - "#didyouknow"
+  - "#eastereggs"
