@@ -65,8 +65,6 @@ This is the most detailed part. Follow each step carefully.
 
 #### A. Google Cloud & YouTube API Setup
 
-This gives the bot the "key" to talk to YouTube.
-
 1.  Go to the [Google Cloud Console](https://console.cloud.google.com/) and log in.
 2.  Create a **New Project** (e.g., "My Shorts Uploader").
 3.  In the search bar, find and **Enable** the **"YouTube Data API v3"**.
