@@ -1,138 +1,154 @@
-# ShortsBot - Your Automated YouTube Shorts Pipeline
+# ShortsBot: An Automated Video Content Pipeline
 
 Welcome to ShortsBot! This is a powerful, fully automated Python application designed to streamline your content creation process. It monitors a folder for new videos, intelligently splits them into short clips, automatically generates and burns in word-for-word subtitles, and schedules them for upload to your YouTube channel, all controlled via simple Discord commands.
 
-This system is built to be deterministic and reliable, with no AI decision-making involved.
+This project is built with a focus on reliability and deterministic operation, utilizing a suite of powerful, industry-standard tools without reliance on non-deterministic AI for its core logic.
 
 ---
 
-## 🌟 Core Features
+## Table of Contents
 
--   **Folder Monitoring:** Automatically detects new `.mp4` or `.mkv` videos.
--   **Intelligent Clipping:** Splits long videos into short clips of a set duration with overlap.
--   **Automatic Subtitles:** Uses a local `openai-whisper` model to generate perfectly synced, word-by-word subtitles and burns them onto the video.
+-   [Key Features](#-key-features)
+-   [System Architecture](#-system-architecture)
+-   [Installation & Configuration](#️-installation--configuration)
+    -   [Prerequisites](#step-1-prerequisites)
+    -   [Project Setup](#step-2-project-setup)
+    -   [Google Cloud & YouTube API Configuration](#step-3-google-cloud--youtube-api-configuration)
+    -   [Discord Bot Configuration](#step-4-discord-bot-configuration)
+    -   [Final Application Configuration](#step-5-final-application-configuration)
+-   [Usage Guide](#-usage-guide)
+-   [Folder Structure](#-folder-structure)
+-   [License](#-license)
+
+---
+
+## 🌟 Key Features
+
+-   **Automated Processing Pipeline:** Monitors an input directory and processes new video files end-to-end.
+-   **Intelligent Video Clipping:** Splits source videos into configurable-length clips with overlap support for seamless viewing.
+-   **Automatic Subtitles:** Uses a local `openai-whisper` model to generate highly accurate, time-synced subtitles and burns them onto the video clips.
 -   **Full YouTube Integration:**
-    -   Creates a public playlist for each new video series.
-    -   Uploads clips as private and schedules them according to a weekly timetable.
-    -   Adds each clip to the correct playlist.
+    -   Automatically creates public playlists for each new video series.
+    -   Uploads clips as private and schedules them for publication according to a customizable weekly timetable.
+    -   Associates each clip with its corresponding playlist.
 -   **Robust State Management:**
-    -   Remembers all progress in `progress.json` to avoid duplicate work.
-    -   Intelligently resumes partially completed videos.
-    -   Prioritizes re-uploading failed clips before starting new work.
-    -   Quarantines corrupted video files to keep the pipeline running.
+    -   Maintains a persistent `progress.json` state file to prevent duplicate processing and allow for safe resumption of incomplete jobs.
+    -   Intelligently prioritizes tasks: `Failed Uploads` > `Pending Uploads` > `In-Progress Videos` > `New Videos`.
+    -   Automatically quarantines corrupted video files to ensure pipeline integrity.
 -   **Comprehensive Discord Control:**
-    -   Full control via commands like `!start`, `!stop`, `!status`, and more.
-    -   On-demand status checks for your YouTube API quota (`!quota`) and upcoming video schedule (`!schedule`).
+    -   Full operational control via commands (`!start`, `!stop`, `!end`).
+    -   Real-time status monitoring (`!status`), API quota checks (`!quota`), and schedule previews (`!schedule`).
     -   Preview a video's clipping plan before processing (`!preview`).
--   **Offline "Dry Run" Mode:** Test the entire video processing and subtitling pipeline locally without consuming any API quota or uploading to YouTube.
+-   **Offline "Dry Run" Mode:** A configuration switch to run the entire video processing and subtitling pipeline locally for testing, without consuming any YouTube API quota.
 
----
+## 🏗️ System Architecture
 
-## 🛠️ Installation and Setup Guide
+ShortsBot operates as a stateful, asynchronous application. It leverages `asyncio` for concurrent operations and is structured into modular components for maintainability:
 
-Follow these steps precisely to get your ShortsBot running.
+-   **Core Logic (`workflows.py`):** The "brain" of the bot, managing the state machine and processing pipeline.
+-   **Discord Interface (`bot_cog.py`):** Handles all user commands and feedback within Discord.
+-   **API Helpers (`helpers.py`):** Manages all communication with the YouTube Data API v3.
+-   **Video Utilities (`utils.py`):** Contains FFmpeg commands for video splitting and formatting.
+-   **Subtitle Engine (`subtitles.py`):** Integrates Whisper for transcription and MoviePy/ImageMagick for rendering text onto video.
 
-### Part 1: System Prerequisites
+## 🛠️ Installation & Configuration
 
-Before you begin, you must have the following software installed on your computer:
+This guide provides a detailed walkthrough for setting up ShortsBot on a Windows environment.
 
-1.  **Python:** Version 3.10 or newer. You can get it from [python.org](https://www.python.org/downloads/).
-2.  **Git:** For managing the code. You can get it from [git-scm.com](https://git-scm.com/).
-3.  **FFmpeg:** This is essential for all video processing.
-    -   Download the latest "release full build" from [gyan.dev](https://www.gyan.dev/ffmpeg/builds/).
-    -   Unzip the file.
-    -   You **must** add the `bin` folder from inside the unzipped folder to your Windows System PATH.
-4.  **ImageMagick:** This is required for rendering subtitles.
-    -   Download and install from [imagemagick.org](https://imagemagick.org/script/download.php).
-    -   During installation, on the "Select Additional Tasks" screen, you **must** check the box that says **"Add application directory to your system path"**.
+### Step 1: Prerequisites
 
-### Part 2: Project Setup
+Ensure the following system-level dependencies are installed and configured:
 
-1.  **Clone the Repository:** Open your terminal or command prompt and run:
+1.  **Python (3.10+):** Download from [python.org](https://www.python.org/downloads/). During installation, ensure you check the box to "Add Python to PATH".
+2.  **Git:** Download from [git-scm.com](https://git-scm.com/).
+3.  **FFmpeg:** Essential for all video operations.
+    -   Download the latest "release full build" from a trusted source like [gyan.dev](https://www.gyan.dev/ffmpeg/builds/).
+    -   Extract the archive to a permanent location (e.g., `C:\ffmpeg`).
+    -   **Crucially, add the `bin` sub-directory** (e.g., `C:\ffmpeg\bin`) to your Windows System PATH environment variables.
+4.  **ImageMagick:** Required by MoviePy for rendering text.
+    -   Download and install the latest version from [imagemagick.org](https://imagemagick.org/script/download.php).
+    -   During installation, **you must check the box "Add application directory to your system path"**.
+
+*After installing FFmpeg and ImageMagick, it is highly recommended to **restart your computer** to ensure the PATH changes are applied system-wide.*
+
+### Step 2: Project Setup
+
+1.  **Clone the Repository:** Open your terminal (Command Prompt or PowerShell) and navigate to where you want to store the project.
     ```bash
-    git clone https://github.com/your-username/ShortsBot.git
+    git clone https://github.com/sersaumy/ShortsBot.git
     cd ShortsBot
     ```
-
 2.  **Install Python Packages:**
     ```bash
     pip install -r requirements.txt
     ```
 
-### Part 3: API Credentials
+### Step 3: Google Cloud & YouTube API Configuration
 
-This is the most detailed part. Follow each step carefully.
+This process authorizes the application to act on your YouTube channel's behalf.
 
-#### A. Google Cloud & YouTube API Setup
-
-1.  Go to the [Google Cloud Console](https://console.cloud.google.com/) and log in.
-2.  Create a **New Project** (e.g., "My Shorts Uploader").
-3.  In the search bar, find and **Enable** the **"YouTube Data API v3"**.
-4.  Go to the **Credentials** tab on the left.
-5.  Click **+ CREATE CREDENTIALS** -> **OAuth client ID**.
-6.  If prompted, configure the **Consent Screen**:
-    -   Choose **External** and click Create.
-    -   Give it an App name (e.g., "ShortsBot").
-    -   Enter your email for the support and developer contact fields.
-    -   Click "Save and Continue" through all the steps. You don't need to add scopes or test users here.
-7.  Go back to **Credentials** and create the OAuth ID again.
-    -   Application type: **Desktop app**.
-    -   Name: `ShortsBot Client` (or anything).
+1.  Navigate to the [Google Cloud Console](https://console.cloud.google.com/) and create a **New Project**.
+2.  Search for and **Enable** the **"YouTube Data API v3"**.
+3.  From the navigation menu, go to **APIs & Services > OAuth consent screen**.
+    -   Select **External** and create the screen.
+    -   Provide an App name (e.g., "ShortsBot Automation"), your email address, and save.
+    -   Click "Save and Continue" to go to the "Scopes" page (you can leave this blank).
+    -   **CRITICAL STEP:** On the **"Test users"** page, click **+ ADD USERS**. Add the Google Account email address associated with the YouTube channel you want to upload to. You can add multiple accounts if you plan to switch between them. Your app will only work for these specified accounts until it is officially published (which is not necessary for this project).
+4.  Navigate to **APIs & Services > Credentials**.
+    -   Click **+ CREATE CREDENTIALS** and select **OAuth client ID**.
+    -   Set the Application type to **Desktop app**.
     -   Click **Create**.
-8.  A window will pop up. Click the **DOWNLOAD JSON** button.
-9.  Rename the downloaded file to **`client_secrets.json`** and place it in the root of your `ShortsBot` project folder.
+5.  A window will appear. Click **DOWNLOAD JSON**.
+6.  Rename this downloaded file to **`client_secrets.json`** and place it in the root `ShortsBot` folder.
 
-#### B. Discord Bot Setup
+### Step 4: Discord Bot Configuration
 
-This gives you the token to run the bot and the IDs to control it.
+This allows the bot to connect to Discord and receive your commands.
 
-1.  Go to the [Discord Developer Portal](https://discord.com/developers/applications) and create a **New Application**.
-2.  Go to the **Bot** tab on the left.
-3.  Click **"Reset Token"** to reveal your bot's token. **Copy this token immediately and save it.** This is your bot's password.
-4.  Scroll down and enable the **MESSAGE CONTENT INTENT**. This is **required** for the bot to read your commands.
-5.  Go to the **OAuth2 -> URL Generator** tab.
-    -   In "Scopes", check the box for `bot`.
-    -   In "Bot Permissions", check `Send Messages` and `Read Message History`.
-    -   Copy the generated URL at the bottom, paste it into your browser, and invite the bot to your Discord server.
-6.  **Get Your IDs:**
-    -   In Discord, go to User Settings -> Advanced and enable **Developer Mode**.
-    -   **Channel ID:** Right-click on the text channel you want the bot to operate in and click **"Copy Channel ID"**.
-    -   **Owner ID:** Right-click on your own username in Discord and click **"Copy User ID"**.
+1.  Navigate to the [Discord Developer Portal](https://discord.com/developers/applications) and create a **New Application**.
+2.  In the **Bot** tab, click **Reset Token** to get your bot's secret token. Copy and save it securely.
+3.  Enable the **MESSAGE CONTENT INTENT** under "Privileged Gateway Intents".
+4.  Go to the **OAuth2 > URL Generator** tab. Select the `bot` scope. In the permissions that appear, select `Send Messages` and `Read Message History`.
+5.  Copy the generated URL, paste it into your browser, and invite the bot to your server.
+6.  **Enable Developer Mode** in your Discord client (User Settings > Advanced).
+    -   **To get the Channel ID:** Right-click your target text channel and select **"Copy Channel ID"**.
+    -   **To get your User ID:** Right-click your own username and select **"Copy User ID"**. This is required for owner-only commands like `!reload`.
 
-### Part 4: Final Project Configuration
+### Step 5: Final Application Configuration
 
-1.  **Rename Template Files:**
-    -   Rename `config.template.yaml` to **`config.yaml`**.
+1.  **Create Config Files:**
+    -   In the `ShortsBot` folder, rename `config.template.yaml` to **`config.yaml`**.
     -   Rename `schedule.template.yaml` to **`schedule.yaml`**.
+2.  **Edit `config.yaml`:** Open the file and meticulously fill in all placeholder values, paying close attention to indentation (use spaces, not tabs).
+    -   `discord_token`, `channel_id`, `owner_id`.
+    -   The full, absolute path to your `magick.exe` file (use forward slashes `/`).
+3.  **Add a Font:** Place at least one `.ttf` or `.otf` font file inside the `/fonts/` directory. Update the `font_filename` in `config.yaml` to match the exact filename of the font you wish to use.
 
-2.  **Edit `config.yaml`:**
-    -   Open `config.yaml` and carefully fill in every placeholder value. Use a text editor like VS Code that understands YAML indentation (use spaces, not tabs).
+## 🚀 Usage Guide
 
-| Section         | Key                 | Description                                                                                             |
-| --------------- | ------------------- | ------------------------------------------------------------------------------------------------------- |
-| **`youtube`**   | `youtube_online_mode` | `true` to upload to YouTube, `false` for local-only testing.                                            |
-| **`subtitles`** | `font_filename`     | The exact filename of the `.ttf` or `.otf` font you placed in the `/fonts/` folder (e.g., `arial.ttf`). |
-|                 | `imagemagick_path`  | The **full, absolute path** to your `magick.exe` file. Use forward slashes (e.g., `C:/.../magick.exe`).     |
-| **`bot`**       | `discord_token`     | The secret token you copied from the Discord Developer Portal.                                          |
-|                 | `channel_id`        | The ID of the Discord channel where the bot will listen for commands.                                   |
-|                 | `owner_id`          | Your personal Discord User ID. This is required for the `!reload` command.                              |
-
-3.  **Add a Font:**
-    -   Find a `.ttf` or `.otf` font file on your computer.
-    -   Copy it into the `ShortsBot/fonts/` folder.
-    -   Make sure the `font_filename` in your config matches this file's name exactly.
-
-### Part 5: Running the Bot
-
-1.  **First Run (Authorization):**
-    -   Open your terminal in the `ShortsBot` folder.
-    -   Ensure `youtube_online_mode` is `true` in your config.
-    -   Run the command: `python main.py`
-    -   Your browser will open. **Log in to the YouTube/Google account you want to upload videos to.**
-    -   Grant the permissions. A `token.json` file will be created. The bot is now authorized.
-
+1.  **First Run & Authorization:**
+    -   Ensure `youtube_online_mode` is `true` in `config.yaml`.
+    -   Run the bot from your terminal: `python main.py`
+    -   A browser window will open. **Authorize the application by logging into the Google Account you added as a "Test User"**. A `token.json` file will be created, completing the authorization.
 2.  **Normal Operation:**
-    -   Start the bot with `python main.py`.
+    -   Start the bot: `python main.py`
     -   Wait for the "✅ ShortsBot is online and ready!" message in Discord.
     -   Drop a video file into the `/input_videos/` folder.
-    -   Use the `!start` command in your designated Discord channel to begin processing.
+    -   The bot will automatically check for work every few minutes. To trigger an immediate check for new source videos, use the `!start` command.
+
+Refer to `COMMANDS.md` for a full list of available commands and their functions.
+
+## 🗂️ Folder Structure
+
+-   `/input_videos/`: Drop your source `.mp4`/`.mkv` files here.
+-   `/processed_clips/`: Final, subtitled clips are stored here.
+-   `/processed_videos/`: Source videos are moved here after being fully processed.
+-   `/failed_uploads/`: Clips that fail to upload are moved here for a retry.
+-   `/quarantined_videos/`: Corrupted source videos are moved here for manual inspection.
+-   `/fonts/`: Place your `.ttf`/`.otf` font files for subtitles here.
+-   `/logs/`: Contains daily log files of the bot's activity.
+-   `progress.json`: The bot's "memory". Tracks the status of all videos and clips.
+
+## ⚖️ License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
